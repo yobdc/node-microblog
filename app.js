@@ -10,6 +10,7 @@ var path = require('path');
 var MongoStore = require('connect-mongo')(express);
 var flash = require('connect-flash');
 var settings = require('./settings');
+var logger = require('./models/log');
 
 var app = express();
 
@@ -18,7 +19,8 @@ app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.favicon());
-app.use(express.logger('dev'));
+app.set('env', 'production');
+// app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.methodOverride());
 app.use(express.cookieParser());
@@ -32,6 +34,10 @@ app.use(express.session({
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
+process.on('uncaughtException', function(err) {
+    logger.error(err);
+});
+
 // helper
 app.use(function(req, res, next) {
 	res.locals.user = function(req, res) {
@@ -39,7 +45,7 @@ app.use(function(req, res, next) {
 	};
 	res.locals.error = function(req, res) {
 		var err = req.flash('error');
-		if(err.length) {
+		if (err.length) {
 			return err;
 		} else {
 			return null;
@@ -47,7 +53,7 @@ app.use(function(req, res, next) {
 	};
 	res.locals.success = function(req, res) {
 		var succ = req.flash('success');
-		if(succ.length) {
+		if (succ.length) {
 			return succ;
 		} else {
 			return null;
@@ -60,12 +66,14 @@ app.use(function(req, res, next) {
 });
 
 // development only
-if('development' == app.get('env')) {
+if ('development' == app.get('env')) {
 	app.use(express.errorHandler());
 }
 
 http.createServer(app).listen(app.get('port'), function() {
-	console.log('Express server listening on port ' + app.get('port'));
+	console.log('Express server listening on port ' + app.get('port') + ' ' + app.get('env'));
+	logger.info('info');
+	logger.error('error');
 });
 
 routes(app);
