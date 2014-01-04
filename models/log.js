@@ -24,7 +24,9 @@ var log = new(winston.Logger)({
 	exitOnError: false
 });
 
-function Logger() {}
+function Logger() {
+	this.__logger = log;
+}
 
 Logger.prototype.info = function(msg) {
 	log.info(msg + '\r\n');
